@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FingerMagic – AR Finger Canvas & Keyboard</title>
+  <meta name="description" content="An interactive AR experience using your front camera. Draw with your finger, type with gesture keyboard, and create colorful keyword art." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div id="splash" class="splash">
+    <div class="splash-content">
+      <div class="splash-logo">
+        <span class="logo-emoji">✨</span>
+        <h1>FingerMagic</h1>
+        <p>AR Drawing · Gesture Keyboard · Colorful Words</p>
+      </div>
+      <div class="splash-features">
+        <div class="feature-pill">👆 Draw with fingers</div>
+        <div class="feature-pill">⌨️ Type in mid-air</div>
+        <div class="feature-pill">🎨 Colorful keywords</div>
+        <div class="feature-pill">🌈 Live effects</div>
+      </div>
+      <button id="startBtn" class="start-btn">
+        <span class="btn-icon">🎬</span> Launch Experience
+      </button>
+      <p class="permission-note">📷 Camera permission required</p>
+    </div>
+    <div class="splash-bg-orbs">
+      <div class="orb orb1"></div>
+      <div class="orb orb2"></div>
+      <div class="orb orb3"></div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+    <!-- Camera & Canvas layer -->
+    <div class="canvas-area">
+      <video id="video" autoplay muted playsinline></video>
+      <canvas id="overlayCanvas"></canvas>
+      <!-- Finger trail canvas -->
+      <canvas id="drawCanvas"></canvas>
+    </div>
+
+    <!-- Floating Word Display -->
+    <div id="wordDisplay" class="word-display"></div>
+
+    <!-- Floating Particles -->
+    <div id="particles" class="particles-layer"></div>
+
+    <!-- Top HUD -->
+    <div class="hud-top">
+      <div class="hud-logo">✨ FingerMagic</div>
+      <div class="hud-status">
+        <span id="modeLabel" class="mode-label">✏️ DRAW</span>
+        <span id="trackStatus" class="track-status">🔍 Detecting…</span>
+      </div>
+      <button id="clearBtn" class="hud-btn" title="Clear Canvas">🗑️</button>
+    </div>
+
+    <!-- Tool Panel (left) -->
+    <div class="tool-panel" id="toolPanel">
+      <div class="tool-panel-header">🛠️ Tools</div>
+
+      <div class="tool-section">
+        <label class="tool-label">Mode</label>
+        <div class="mode-btns">
+          <button class="mode-btn active" data-mode="draw" title="Draw">✏️</button>
+          <button class="mode-btn" data-mode="keyboard" title="Keyboard">⌨️</button>
+          <button class="mode-btn" data-mode="erase" title="Erase">🧹</button>
+          <button class="mode-btn" data-mode="text" title="Add Text">📝</button>
+        </div>
+      </div>
+
+      <div class="tool-section">
+        <label class="tool-label">Brush</label>
+        <div class="brush-options">
+          <button class="brush-btn active" data-brush="smooth" title="Smooth">〰️</button>
+          <button class="brush-btn" data-brush="neon" title="Neon">💫</button>
+          <button class="brush-btn" data-brush="rainbow" title="Rainbow">🌈</button>
+          <button class="brush-btn" data-brush="glitter" title="Glitter">✨</button>
+          <button class="brush-btn" data-brush="fire" title="Fire">🔥</button>
+          <button class="brush-btn" data-brush="galaxy" title="Galaxy">🌌</button>
+        </div>
+      </div>
+
+      <div class="tool-section">
+        <label class="tool-label">Color</label>
+        <div class="color-picker-row">
+          <input type="color" id="colorPicker" value="#00ffcc" />
+          <div class="palette-dots">
+            <span class="palette-dot" style="background:#ff006e" data-color="#ff006e"></span>
+            <span class="palette-dot" style="background:#fb5607" data-color="#fb5607"></span>
+            <span class="palette-dot" style="background:#ffbe0b" data-color="#ffbe0b"></span>
+            <span class="palette-dot" style="background:#3a86ff" data-color="#3a86ff"></span>
+            <span class="palette-dot" style="background:#8338ec" data-color="#8338ec"></span>
+            <span class="palette-dot" style="background:#00ffcc" data-color="#00ffcc"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-section">
+        <label class="tool-label">Size <span id="sizeVal">8</span>px</label>
+        <input type="range" id="sizeSlider" min="2" max="40" value="8" class="slider" />
+      </div>
+
+      <div class="tool-section">
+        <label class="tool-label">Opacity <span id="opacityVal">90</span>%</label>
+        <input type="range" id="opacitySlider" min="10" max="100" value="90" class="slider" />
+      </div>
+
+      <div class="tool-section">
+        <label class="tool-label">Shapes</label>
+        <div class="shape-btns">
+          <button class="shape-btn" data-shape="circle" title="Circle">⭕</button>
+          <button class="shape-btn" data-shape="star" title="Star">⭐</button>
+          <button class="shape-btn" data-shape="heart" title="Heart">❤️</button>
+          <button class="shape-btn" data-shape="arrow" title="Arrow">➡️</button>
+        </div>
+      </div>
+
+      <div class="tool-section">
+        <button id="saveBtn" class="hud-btn full-btn">💾 Save</button>
+        <button id="screenshotBtn" class="hud-btn full-btn">📸 Screenshot</button>
+      </div>
+    </div>
+
+    <!-- Keyboard overlay -->
+    <div id="keyboardOverlay" class="keyboard-overlay hidden">
+      <div class="kb-header">
+        <span>⌨️ Gesture Keyboard – hover finger to type</span>
+        <button id="kbCloseBtn">✖</button>
+      </div>
+      <div id="keyboardGrid" class="keyboard-grid"></div>
+      <div class="kb-display">
+        <div id="kbOutput" class="kb-output"></div>
+        <button id="kbClear" class="kb-action-btn">Clear</button>
+        <button id="kbEmit" class="kb-action-btn primary">✨ Emit Words</button>
+      </div>
+    </div>
+
+    <!-- Effects Panel (right) -->
+    <div class="effects-panel">
+      <div class="fx-header">🎆 FX</div>
+      <button class="fx-btn" id="confettiBtn" title="Confetti">🎊</button>
+      <button class="fx-btn" id="fireworkBtn" title="Fireworks">🎇</button>
+      <button class="fx-btn" id="starshowerBtn" title="Star Shower">🌟</button>
+      <button class="fx-btn" id="matrixBtn" title="Matrix Rain">🟩</button>
+      <button class="fx-btn" id="bubbleBtn" title="Bubbles">🫧</button>
+    </div>
+
+    <!-- Finger cursor indicator -->
+    <div id="fingerCursor" class="finger-cursor hidden"></div>
+
+    <!-- Word Cannon -->
+    <div id="wordCannon" class="word-cannon hidden"></div>
+
+    <!-- Matrix overlay -->
+    <canvas id="matrixCanvas" class="matrix-canvas hidden"></canvas>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <!-- MediaPipe -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>
